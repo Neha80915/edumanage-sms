@@ -2,7 +2,6 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadialBarChart, RadialBar, Legend } from 'recharts';
 import { BookOpen, Calendar, Trophy, FileText, TrendingUp, User } from 'lucide-react';
-import { calculateAttendancePercentage, calculateGPA } from '../../data/mockData';
 
 export function StudentDashboard() {
   const { currentUser, students, attendance, marks, fees, assignments } = useApp();
@@ -11,12 +10,17 @@ export function StudentDashboard() {
   const student = students.find(s => s.id === currentUser?.id);
   if (!student) return <div>Student not found</div>;
 
-  // Calculate stats
-  const attendancePercentage = calculateAttendancePercentage(student.id);
-  const gpa = calculateGPA(student.id);
-  const studentMarks = marks.filter(m => m.studentId === student.id);
-  const studentFee = fees.find(f => f.studentId === student.id);
+  // Calculate stats from real Supabase data
   const studentAttendance = attendance.filter(a => a.studentId === student.id);
+  const presentCount = studentAttendance.filter(a => a.status === 'Present').length;
+  const attendancePercentage = studentAttendance.length > 0 ? Math.round((presentCount / studentAttendance.length) * 100) : 0;
+
+  const studentMarks = marks.filter(m => m.studentId === student.id);
+  const gpa = studentMarks.length > 0
+    ? Math.round((studentMarks.reduce((sum, m) => sum + (m.obtainedMarks / m.maxMarks) * 10, 0) / studentMarks.length) * 10) / 10
+    : 0;
+
+  const studentFee = fees.find(f => f.studentId === student.id);
 
   // Attendance status
   const attendanceStats = [

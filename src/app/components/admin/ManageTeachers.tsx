@@ -8,6 +8,7 @@ export function ManageTeachers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [teacherPassword, setTeacherPassword] = useState('password123');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -58,17 +59,17 @@ export function ManageTeachers() {
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this teacher?')) {
-      deleteTeacher(id);
+      await deleteTeacher(id);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (editingTeacher) {
-      updateTeacher({
+      await updateTeacher({
         ...editingTeacher,
         ...formData,
       });
@@ -79,7 +80,7 @@ export function ManageTeachers() {
         role: 'teacher',
         joinDate: new Date().toISOString().split('T')[0],
       };
-      addTeacher(newTeacher);
+      await addTeacher(newTeacher, teacherPassword);
     }
 
     setShowModal(false);
@@ -305,6 +306,19 @@ export function ManageTeachers() {
                 </div>
               </div>
 
+              {!editingTeacher && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password</label>
+                  <input
+                    type="text"
+                    value={teacherPassword}
+                    onChange={e => setTeacherPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                    placeholder="Set login password for teacher"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Teacher will use this password to login</p>
+                </div>
+              )}
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"

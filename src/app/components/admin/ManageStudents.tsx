@@ -14,6 +14,7 @@ export function ManageStudents() {
   const [detailTab, setDetailTab] = useState<'profile' | 'prediction'>('profile');
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [studentPassword, setStudentPassword] = useState('password123');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -102,7 +103,7 @@ export function ManageStudents() {
         parentId: `P${Date.now()}`,
         admissionDate: new Date().toISOString().split('T')[0],
       };
-      await addStudent(newStudent);
+      await addStudent(newStudent, studentPassword);
     }
 
     setShowModal(false);
@@ -453,6 +454,19 @@ export function ManageStudents() {
                 </div>
               </div>
 
+              {!editingStudent && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password</label>
+                  <input
+                    type="text"
+                    value={studentPassword}
+                    onChange={e => setStudentPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                    placeholder="Set login password for student"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Student will use this password to login</p>
+                </div>
+              )}
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"

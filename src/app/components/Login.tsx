@@ -9,16 +9,22 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleQuickLogin = async (email: string) => {
+    setLoading(true);
+    setError('');
+    const success = await login(email, 'password123');
+    if (!success) setError('Quick login failed. Please try manually.');
+    setLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email || !password) { setError('Please fill in all fields'); return; }
     setLoading(true);
-    setTimeout(() => {
-      const success = login(email, password);
-      if (!success) setError('Invalid credentials. Use "password" for all demo accounts.');
-      setLoading(false);
-    }, 600);
+    const success = await login(email, password);
+    if (!success) setError('Invalid credentials. Please check your email and password.');
+    setLoading(false);
   };
 
   const quickAccounts = [
@@ -137,7 +143,7 @@ export function Login() {
                     <button
                       key={acc.role}
                       type="button"
-                      onClick={() => { setEmail(acc.email); setPassword('password'); }}
+                      onClick={() => { setEmail(acc.email); setPassword(''); }}
                       className={`flex items-center gap-2 p-2.5 rounded-xl border ${acc.bg} ${acc.border} hover:shadow-sm transition-all text-left`}
                     >
                       <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${acc.color} flex items-center justify-center flex-shrink-0`}>
@@ -151,7 +157,7 @@ export function Login() {
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-400 mt-3 text-center">Password for all demo accounts: <span className="font-mono font-semibold text-gray-600">password</span></p>
+              <p className="text-xs text-gray-400 mt-3 text-center">Demo password: <span className="font-mono font-semibold text-gray-600">password123</span></p>
             </div>
           </div>
         </div>
