@@ -1,3 +1,20 @@
-This Figma Make file includes components from [shadcn/ui](https://ui.shadcn.com/) used under [MIT license](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md).
+# Project Guidelines
 
-This Figma Make file includes photos from [Unsplash](https://unsplash.com) used under [license](https://unsplash.com/license).
+## Code Style
+- Use TypeScript for all components
+- Use functional components with hooks
+- Keep components small and focused
+- Use Tailwind CSS for styling
+
+## Folder Structure
+- `components/admin/` — Admin only components
+- `components/teacher/` — Teacher only components
+- `components/dashboards/` — Role-based dashboards
+- `context/` — Global state management
+- `lib/` — External service clients
+- `types/` — TypeScript interfaces
+
+## Database
+- All data is stored in Supabase PostgreSQL
+- Use the AppContext for all data operations
+- Never call Supabase directly from components
