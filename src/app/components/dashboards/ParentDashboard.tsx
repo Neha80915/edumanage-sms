@@ -2,29 +2,28 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { User, Calendar, Trophy, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
-import { calculateAttendancePercentage, calculateGPA } from '../../data/mockData';
 
 export function ParentDashboard() {
   const { currentUser, students, parents, attendance, marks, fees } = useApp();
 
-  // Get parent details
   const parent = parents.find(p => p.id === currentUser?.id);
   if (!parent) return <div>Parent not found</div>;
 
-  // Get children
   const children = students.filter(s => parent.children.includes(s.id));
-  const child = children[0]; // For demo, showing first child
+  const child = children[0];
 
   if (!child) return <div>No children found</div>;
 
-  // Calculate child's stats
-  const attendancePercentage = calculateAttendancePercentage(child.id);
-  const gpa = calculateGPA(child.id);
-  const childMarks = marks.filter(m => m.studentId === child.id);
-  const childFee = fees.find(f => f.studentId === child.id);
   const childAttendance = attendance.filter(a => a.studentId === child.id);
+  const presentCount = childAttendance.filter(a => a.status === 'Present').length;
+  const attendancePercentage = childAttendance.length > 0 ? Math.round((presentCount / childAttendance.length) * 100) : 0;
 
-  // Recent attendance (last 7 days)
+  const childMarks = marks.filter(m => m.studentId === child.id);
+  const gpa = childMarks.length > 0
+    ? Math.round((childMarks.reduce((sum, m) => sum + (m.obtainedMarks / m.maxMarks) * 10, 0) / childMarks.length) * 10) / 10
+    : 0;
+
+  const childFee = fees.find(f => f.studentId === child.id);
   const recentAttendance = childAttendance.slice(-7).map(a => ({
     date: a.date.split('-')[2],
     status: a.status === 'Present' ? 1 : a.status === 'Late' ? 0.5 : 0,

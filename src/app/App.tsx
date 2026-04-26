@@ -10,7 +10,11 @@ import { ManageTeachers } from './components/admin/ManageTeachers';
 import { MarkAttendance } from './components/teacher/MarkAttendance';
 import { EnterMarks } from './components/teacher/EnterMarks';
 import { TeacherStudentView } from './components/teacher/TeacherStudentView';
-import { LogOut, LayoutDashboard, Users, GraduationCap, Calendar, FileText } from 'lucide-react';
+import { FeeManagement } from './components/admin/FeeManagement';
+import { StudentFees } from './components/student/StudentFees';
+import { ParentFees } from './components/parent/ParentFees';
+import { PayFee } from './components/parent/PayFee';
+import { LogOut, LayoutDashboard, Users, GraduationCap, Calendar, FileText, DollarSign } from 'lucide-react';
 
 function AppContent() {
   const { currentUser, logout } = useApp();
@@ -25,6 +29,7 @@ function AppContent() {
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'students', label: 'Manage Students', icon: GraduationCap },
           { id: 'teachers', label: 'Manage Teachers', icon: Users },
+          { id: 'fees', label: 'Fee Management', icon: FileText },
         ];
       case 'teacher':
         return [
@@ -33,8 +38,17 @@ function AppContent() {
           { id: 'attendance', label: 'Mark Attendance', icon: Calendar },
           { id: 'marks', label: 'Enter Marks', icon: FileText },
         ];
+      case 'student':
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'fees', label: 'My Fees', icon: FileText },
+        ];
       default:
-        return [];
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'fees', label: 'Fee Status', icon: FileText },
+          { id: 'payfee', label: 'Pay Fees', icon: DollarSign },
+        ];
     }
   };
 
@@ -44,6 +58,7 @@ function AppContent() {
         case 'dashboard': return <AdminDashboard />;
         case 'students': return <ManageStudents />;
         case 'teachers': return <ManageTeachers />;
+        case 'fees': return <FeeManagement />;
         default: return <AdminDashboard />;
       }
     } else if (currentUser.role === 'teacher') {
@@ -55,8 +70,11 @@ function AppContent() {
         default: return <TeacherDashboard />;
       }
     } else if (currentUser.role === 'student') {
+      if (currentPage === 'fees') return <StudentFees />;
       return <StudentDashboard />;
     } else if (currentUser.role === 'parent') {
+      if (currentPage === 'fees') return <ParentFees />;
+      if (currentPage === 'payfee') return <PayFee />;
       return <ParentDashboard />;
     }
     return <div>Unknown role</div>;

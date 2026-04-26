@@ -15,6 +15,7 @@ interface AppContextType {
   fees: Fee[];
   assignments: Assignment[];
   loading: boolean;
+  setFees: React.Dispatch<React.SetStateAction<Fee[]>>;
   addStudent: (student: Student, password: string) => Promise<void>;
   updateStudent: (student: Student) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
@@ -198,7 +199,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
       parent_phone: student.parentPhone, admission_date: student.admissionDate,
       subjects: student.subjects, blood_group: student.bloodGroup,
     });
-    if (!error) setStudents(prev => [...prev, student]);
+    if (!error) {
+      setStudents(prev => [...prev, student]);
+      // 4. Auto-assign fees from fee structure
+      const { data: feeStructure } = await supabase
+        .from('fee_structure')
+        .select('*')
+        .eq('class', student.class);
+      if (feeStructure && feeStructure.length > 0) {
+        for (const fs of feeStructure) {
+          const newFeeId = `F${Date.now()}-${student.id}-${fs.id}`;
+          await supabase.from('fees').insert({
+            id: newFeeId, student_id: student.id, amount: fs.amount,
+            paid_amount: 0, due_date: fs.due_date, status: 'Pending',
+            category: fs.category, payment_date: null,
+          });
+          setFees(prev => [...prev, {
+            id: newFeeId, studentId: student.id, amount: fs.amount,
+            paidAmount: 0, dueDate: fs.due_date, status: 'Pending',
+            category: fs.category, paymentDate: null,
+          }]);
+        }
+      }
+    }
     else console.error('Add student error:', error);
   };
 
@@ -285,7 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       currentUser, login, logout,
       students, teachers, parents, attendance, marks, fees, assignments,
-      loading,
+      loading, setFees,
       addStudent, updateStudent, deleteStudent,
       addTeacher, updateTeacher, deleteTeacher,
       addAttendance, addMark, updateFee, addAssignment,
