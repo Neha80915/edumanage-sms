@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Login } from './components/Login';
 import { AdminDashboard } from './components/dashboards/AdminDashboard';
@@ -19,6 +19,11 @@ import { LogOut, LayoutDashboard, Users, GraduationCap, Calendar, FileText, Doll
 function AppContent() {
   const { currentUser, logout } = useApp();
   const [currentPage, setCurrentPage] = useState('dashboard');
+
+  // Reset to dashboard whenever user changes
+  useEffect(() => {
+    setCurrentPage('dashboard');
+  }, [currentUser?.id]);
 
   if (!currentUser) return <Login />;
 
