@@ -11,6 +11,7 @@ import { MarkAttendance } from './components/teacher/MarkAttendance';
 import { EnterMarks } from './components/teacher/EnterMarks';
 import { TeacherStudentView } from './components/teacher/TeacherStudentView';
 import { FeeManagement } from './components/admin/FeeManagement';
+import { ReportCard } from './components/admin/ReportCard';
 import { StudentFees } from './components/student/StudentFees';
 import { ParentFees } from './components/parent/ParentFees';
 import { PayFee } from './components/parent/PayFee';
@@ -35,6 +36,7 @@ function AppContent() {
           { id: 'students', label: 'Manage Students', icon: GraduationCap },
           { id: 'teachers', label: 'Manage Teachers', icon: Users },
           { id: 'fees', label: 'Fee Management', icon: FileText },
+          { id: 'reportcard', label: 'Report Cards', icon: FileText },
         ];
       case 'teacher':
         return [
@@ -64,6 +66,7 @@ function AppContent() {
         case 'students': return <ManageStudents />;
         case 'teachers': return <ManageTeachers />;
         case 'fees': return <FeeManagement />;
+        case 'reportcard': return <ReportCard />;
         default: return <AdminDashboard />;
       }
     } else if (currentUser.role === 'teacher') {
