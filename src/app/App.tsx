@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { AppProvider, useApp } from './context/AppContext';
 import { Login } from './components/Login';
 import { AdminDashboard } from './components/dashboards/AdminDashboard';
@@ -10,12 +11,16 @@ import { ManageTeachers } from './components/admin/ManageTeachers';
 import { MarkAttendance } from './components/teacher/MarkAttendance';
 import { EnterMarks } from './components/teacher/EnterMarks';
 import { TeacherStudentView } from './components/teacher/TeacherStudentView';
+import { TeacherAssignments } from './components/teacher/TeacherAssignments';
 import { FeeManagement } from './components/admin/FeeManagement';
 import { ReportCard } from './components/admin/ReportCard';
 import { StudentFees } from './components/student/StudentFees';
+import { StudentMarks } from './components/student/StudentMarks';
+import { StudentAttendance } from './components/student/StudentAttendance';
+import { StudentAssignments } from './components/student/StudentAssignments';
 import { ParentFees } from './components/parent/ParentFees';
 import { PayFee } from './components/parent/PayFee';
-import { LogOut, LayoutDashboard, Users, GraduationCap, Calendar, FileText, DollarSign } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, GraduationCap, Calendar, FileText, DollarSign, Trophy, BookOpen } from 'lucide-react';
 
 function AppContent() {
   const { currentUser, logout } = useApp();
@@ -44,10 +49,14 @@ function AppContent() {
           { id: 'students', label: 'My Students', icon: GraduationCap },
           { id: 'attendance', label: 'Mark Attendance', icon: Calendar },
           { id: 'marks', label: 'Enter Marks', icon: FileText },
+          { id: 'assignments', label: 'Assignments', icon: BookOpen },
         ];
       case 'student':
         return [
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'marks', label: 'My Marks', icon: Trophy },
+          { id: 'attendance', label: 'My Attendance', icon: Calendar },
+          { id: 'assignments', label: 'Assignments', icon: BookOpen },
           { id: 'fees', label: 'My Fees', icon: FileText },
         ];
       default:
@@ -75,10 +84,14 @@ function AppContent() {
         case 'students': return <TeacherStudentView />;
         case 'attendance': return <MarkAttendance />;
         case 'marks': return <EnterMarks />;
+        case 'assignments': return <TeacherAssignments />;
         default: return <TeacherDashboard />;
       }
     } else if (currentUser.role === 'student') {
       if (currentPage === 'fees') return <StudentFees />;
+      if (currentPage === 'marks') return <StudentMarks />;
+      if (currentPage === 'attendance') return <StudentAttendance />;
+      if (currentPage === 'assignments') return <StudentAssignments />;
       return <StudentDashboard />;
     } else if (currentUser.role === 'parent') {
       if (currentPage === 'fees') return <ParentFees />;
@@ -186,6 +199,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppContent />
+      <Toaster position="top-right" richColors />
     </AppProvider>
   );
 }

@@ -7,36 +7,33 @@ export function TeacherDashboard() {
   const { currentUser, students, teachers, attendance, marks } = useApp();
   const [activeTab, setActiveTab] = useState('overview');
 
-
-  // Get teacher details
   const teacher = teachers.find(t => t.id === currentUser?.id);
-  if (!teacher) return <div>Teacher not found</div>;
 
-  // Get teacher's students (students in their classes)
+  const todayDate = new Date().toISOString().split('T')[0];
+
   const teacherStudents = students.filter(s =>
-    teacher.classes.some(c => c.includes(s.class))
+    teacher?.classes.some(c => c.includes(s.class))
   );
 
-  // Calculate stats
-  const totalClasses = teacher.classes.length;
+  const totalClasses = teacher?.classes.length ?? 0;
   const totalStudents = teacherStudents.length;
   const todayAttendance = attendance.filter(a =>
-    a.markedBy === teacher.id && a.date === '2026-04-05'
+    a.markedBy === teacher?.id && a.date === todayDate
   ).length;
-  const totalMarksEntered = marks.filter(m => m.teacherId === teacher.id).length;
+  const totalMarksEntered = marks.filter(m => m.teacherId === teacher?.id).length;
 
-  // Attendance data for chart
   const attendanceStats = [
-    { name: 'Present', value: attendance.filter(a => a.markedBy === teacher.id && a.status === 'Present').length, color: '#10b981' },
-    { name: 'Absent', value: attendance.filter(a => a.markedBy === teacher.id && a.status === 'Absent').length, color: '#ef4444' },
-    { name: 'Late', value: attendance.filter(a => a.markedBy === teacher.id && a.status === 'Late').length, color: '#f59e0b' },
+    { name: 'Present', value: attendance.filter(a => a.markedBy === teacher?.id && a.status === 'Present').length, color: '#10b981' },
+    { name: 'Absent', value: attendance.filter(a => a.markedBy === teacher?.id && a.status === 'Absent').length, color: '#ef4444' },
+    { name: 'Late', value: attendance.filter(a => a.markedBy === teacher?.id && a.status === 'Late').length, color: '#f59e0b' },
   ];
 
-  // Class-wise student count
-  const classData = teacher.classes.map(className => ({
+  const classData = (teacher?.classes ?? []).map(className => ({
     class: className,
     students: students.filter(s => `${s.class} ${s.section}` === className).length,
   }));
+
+  if (!teacher) return <div className="p-8 text-gray-500">Teacher not found</div>;
 
   return (
     <div className="space-y-6">
@@ -203,9 +200,7 @@ export function TeacherDashboard() {
         </div>
       )}
 
-{activeTab === 'manageStudents' && <ManageStudents />}
-
-      {activeTab === 'performance' && (
+{activeTab === 'performance' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Marks */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

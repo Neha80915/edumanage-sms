@@ -7,14 +7,16 @@ export function EnterMarks() {
 
   // Get teacher details
   const teacher = teachers.find(t => t.id === currentUser?.id);
-  if (!teacher) return <div>Teacher not found</div>;
 
-  const [selectedClass, setSelectedClass] = useState(teacher.classes[0] || '');
-  const [selectedSubject, setSelectedSubject] = useState(teacher.subjects[0] || '');
+  const [selectedClass, setSelectedClass] = useState(teacher?.classes[0] || '');
+  const [selectedSubject, setSelectedSubject] = useState(teacher?.subjects[0] || '');
   const [selectedExamType, setSelectedExamType] = useState<'Mid-Term' | 'Final' | 'Unit Test' | 'Assignment' | 'Quiz'>('Mid-Term');
   const [maxMarks, setMaxMarks] = useState('100');
   const [marksData, setMarksData] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!teacher) return <div>Teacher not found</div>;
 
   // Get students for selected class
   const classStudents = students.filter(s => {
@@ -46,7 +48,7 @@ export function EnterMarks() {
     return 'F';
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (Object.keys(marksData).length === 0) {
       setMessage('Please enter marks for at least one student');
       return;
@@ -57,8 +59,10 @@ export function EnterMarks() {
       return;
     }
 
+    setIsSubmitting(true);
+
     // Add mark records
-    Object.entries(marksData).forEach(([studentId, marks]) => {
+    for (const [studentId, marks] of Object.entries(marksData)) {
       if (marks !== '') {
         const obtainedMarks = parseInt(marks);
         const maximum = parseInt(maxMarks);
@@ -75,11 +79,12 @@ export function EnterMarks() {
           class: selectedClass.split(' ')[0],
           section: selectedClass.split(' ')[1],
         };
-        addMark(newMark);
+        await addMark(newMark);
       }
-    });
+    }
 
-    setMessage(`✓ Marks entered successfully for ${Object.keys(marksData).filter(k => marksData[k] !== '').length} students`);
+    setIsSubmitting(false);
+    setMessage(`✓ Marks saved successfully for ${Object.keys(marksData).filter(k => marksData[k] !== '').length} students`);
     setMarksData({});
     setTimeout(() => setMessage(''), 3000);
   };
@@ -124,7 +129,7 @@ export function EnterMarks() {
             <label className="block text-sm mb-2 text-gray-700">Exam Type</label>
             <select
               value={selectedExamType}
-              onChange={(e) => setSelectedExamType(e.target.value as any)}
+              onChange={(e) => setSelectedExamType(e.target.value as 'Mid-Term' | 'Final' | 'Unit Test' | 'Assignment' | 'Quiz')}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="Mid-Term">Mid-Term</option>
@@ -221,10 +226,18 @@ export function EnterMarks() {
           <div className="p-6 border-t border-gray-200 flex justify-end">
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Save className="w-5 h-5" />
-              Save Marks
+              {isSubmitting ? (
+                <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isSubmitting ? 'Saving...' : 'Save Marks'}
             </button>
           </div>
         )}

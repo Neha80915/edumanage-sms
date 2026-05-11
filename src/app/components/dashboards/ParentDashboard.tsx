@@ -7,12 +7,16 @@ export function ParentDashboard() {
   const { currentUser, students, parents, attendance, marks, fees } = useApp();
 
   const parent = parents.find(p => p.id === currentUser?.id);
-  if (!parent) return <div>Parent not found</div>;
 
-  const children = students.filter(s => parent.children.includes(s.id));
+  const children = students.filter(s => parent?.children.includes(s.id));
   const child = children[0];
 
-  if (!child) return <div>No children found</div>;
+  if (!parent || !child) return (
+    <div className="p-8 text-center text-gray-500">
+      <p className="font-medium">Loading parent data...</p>
+      <p className="text-sm mt-1">If this persists, please log out and log back in.</p>
+    </div>
+  );
 
   const childAttendance = attendance.filter(a => a.studentId === child.id);
   const presentCount = childAttendance.filter(a => a.status === 'Present').length;

@@ -2,17 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import { DollarSign, Plus, CheckCircle, Clock, AlertTriangle, Search, X, TrendingUp, Users, Edit } from 'lucide-react';
+import { Fee } from '../../types';
+
+interface FeeStructure {
+  id: string;
+  class: string;
+  category: string;
+  amount: number;
+  due_date: string;
+  academic_year: string;
+}
 
 export function FeeManagement() {
   const { students, fees, setFees } = useApp();
   const [activeTab, setActiveTab] = useState<'payments' | 'structure'>('payments');
-  const [feeStructure, setFeeStructure] = useState<any[]>([]);
+  const [feeStructure, setFeeStructure] = useState<FeeStructure[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterClass, setFilterClass] = useState('');
   const [showPayModal, setShowPayModal] = useState(false);
   const [showStructureModal, setShowStructureModal] = useState(false);
-  const [selectedFee, setSelectedFee] = useState<any>(null);
+  const [selectedFee, setSelectedFee] = useState<Fee | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [structureForm, setStructureForm] = useState({ class: '10th', category: 'Tuition', amount: '', due_date: '', description: '' });
@@ -56,7 +66,7 @@ export function FeeManagement() {
       payment_date: paymentDate,
     }).eq('id', selectedFee.id);
     if (!error) {
-      setFees((prev: any[]) => prev.map(f => f.id === selectedFee.id ? {
+      setFees((prev: Fee[]) => prev.map(f => f.id === selectedFee.id ? {
         ...f, paidAmount: newPaidAmount, status: newStatus, paymentDate: paymentDate
       } : f));
     }
@@ -90,10 +100,11 @@ export function FeeManagement() {
       fetchFeeStructure();
       // Refresh fees
       const { data: feesData } = await supabase.from('fees').select('*');
-      if (feesData) setFees(feesData.map((f: any) => ({
-        id: f.id, studentId: f.student_id, amount: f.amount,
-        paidAmount: f.paid_amount, dueDate: f.due_date,
-        status: f.status, category: f.category, paymentDate: f.payment_date,
+      if (feesData) setFees(feesData.map((f: Record<string, unknown>) => ({
+        id: f.id as string, studentId: f.student_id as string, amount: f.amount as number,
+        paidAmount: f.paid_amount as number, dueDate: f.due_date as string,
+        status: f.status as Fee['status'], category: f.category as Fee['category'],
+        paymentDate: f.payment_date as string | undefined,
       })));
     }
     setShowStructureModal(false);

@@ -1,40 +1,52 @@
 # EduManage — Student Management System
 
-A full-featured Student Management System built with React and Supabase, featuring role-based access, AI-powered grade prediction, and real-time data persistence.
-
-## 🚀 Live Demo
-> Coming soon (Vercel deployment)
+A full-stack Student Management System built with React, TypeScript, and Supabase, featuring role-based access for Admin, Teacher, Student, and Parent.
 
 ## ✨ Features
 
-- **Role-Based Access** — Separate dashboards for Admin, Teacher, Student, and Parent
-- **Student Management** — Add, edit, delete students with full CRUD operations
-- **Attendance Tracking** — Mark and monitor student attendance by class and subject
-- **Marks & Results** — Enter and track student marks across subjects and exam types
-- **AI Grade Prediction** — Predict student final grades based on attendance, mid-term scores, study hours, and assignments using a weighted ML formula
-- **Analytics Dashboard** — Visual charts for student distribution, gender split, subject performance, and fee collection
-- **CSV Export** — Export student data to CSV with one click
-- **Fee Management** — Track fee payment status (Paid, Pending, Overdue)
-- **Search & Filter** — Search students by name, roll number, or email; filter by class and gender
-- **Student Profile Modal** — Detailed student view with performance charts and radar graph
-- **Real Database** — Supabase PostgreSQL backend with persistent data storage
+### Admin
+- Manage Students — Add, edit, delete with Supabase Auth account creation
+- Manage Teachers — Full CRUD with role-based access
+- Fee Management — Track payments, collection rates, fee structure
+- Report Cards — Generate and print student report cards
+- Grade Prediction — Weighted scoring formula based on attendance, mid-term, study hours, assignments
+- Dashboard — Real-time stats: students, teachers, attendance rate, revenue
+
+### Teacher
+- My Students — View students in assigned classes with performance details
+- Mark Attendance — Mark Present/Absent/Late per class and subject
+- Enter Marks — Record exam results, auto-calculates grades
+- Assignments — Create assignments for classes, persisted to Supabase
+- Dashboard — Class overview, attendance summary, marks entered
+
+### Student
+- Dashboard — Personal stats for attendance, marks, fees, assignments
+- My Marks — Exam results with subject-wise performance chart
+- My Attendance — Full attendance record with month filter and progress bar
+- Assignments — View class assignments with urgency indicators
+- My Fees — Fee payment status and history
+
+### Parent
+- Dashboard — Child's performance, attendance, fee overview
+- Fee Payment — View and pay fees via UPI or bank challan
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18 + TypeScript |
-| Styling | Tailwind CSS |
+| Styling | Tailwind CSS + shadcn/ui |
 | Charts | Recharts |
-| Database | Supabase (PostgreSQL) |
+| Database | Supabase (PostgreSQL + Auth) |
 | Build Tool | Vite |
+| Notifications | Sonner (toast) |
 | Icons | Lucide React |
 
 ## 📦 Installation
 
 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/edumanage-sms.git
+git clone https://github.com/Neha80915/edumanage-sms.git
 cd edumanage-sms
 ```
 
@@ -43,10 +55,10 @@ cd edumanage-sms
 npm install
 ```
 
-3. Create `.env.local` in root folder
+3. Create `.env.local` in the root folder
 ```
 VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_SERVICE_KEY=your_supabase_service_key
 ```
 
 4. Run the development server
@@ -58,34 +70,70 @@ npm run dev
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@school.com | password |
-| Teacher | sunita.mehta@school.com | password |
-| Student | rahul.sharma@school.com | password |
-| Parent | vijay.sharma@parent.com | password |
+| Admin | admin@school.com | password123 |
+| Teacher | sunita.mehta@school.com | password123 |
+| Student | rahul.sharma@school.com | password123 |
+| Parent | vijay.sharma@parent.com | password123 |
+
+## 🗄️ Database Tables (Supabase)
+
+| Table | Description |
+|-------|-------------|
+| `profiles` | User role mapping |
+| `students` | Student records |
+| `teachers` | Teacher records |
+| `parents` | Parent records |
+| `attendance` | Daily attendance records |
+| `marks` | Exam marks and grades |
+| `fees` | Fee payment records |
+| `assignments` | Class assignments |
+| `fee_structure` | Fee structure per class |
 
 ## 📁 Project Structure
 
 ```
 src/
-├── app/
-│   ├── components/
-│   │   ├── admin/          # Admin-specific components
-│   │   ├── teacher/        # Teacher-specific components
-│   │   ├── dashboards/     # Role-based dashboards
-│   │   └── Login.tsx       # Authentication page
-│   ├── context/
-│   │   └── AppContext.tsx  # Global state + Supabase integration
-│   ├── lib/
-│   │   └── supabase.ts     # Supabase client
-│   ├── data/
-│   │   └── mockData.ts     # Fallback mock data
-│   └── types/
-│       └── index.ts        # TypeScript interfaces
+└── app/
+    ├── components/
+    │   ├── admin/        — ManageStudents, ManageTeachers, FeeManagement, GradePrediction, ReportCard
+    │   ├── teacher/      — MarkAttendance, EnterMarks, TeacherStudentView, TeacherAssignments
+    │   ├── student/      — StudentMarks, StudentAttendance, StudentAssignments, StudentFees
+    │   ├── parent/       — ParentFees, PayFee
+    │   ├── dashboards/   — AdminDashboard, TeacherDashboard, StudentDashboard, ParentDashboard
+    │   ├── Login.tsx     — Authentication page
+    │   └── Notifications.tsx — Smart role-based alerts
+    ├── context/
+    │   └── AppContext.tsx — Global state + role-based Supabase CRUD
+    ├── lib/
+    │   └── supabase.ts   — Supabase client (reads from .env.local)
+    ├── data/
+    │   └── mockData.ts   — Fallback data
+    └── types/
+        └── index.ts      — TypeScript interfaces
 ```
+
+## 🔑 Key Technical Decisions
+
+### Role-Based Data Fetching
+Each role fetches only the data it needs on login:
+- **Admin** → fetches everything in parallel using Promise.all
+- **Teacher** → only their class students, own attendance/marks
+- **Student** → only their own records + class assignments
+- **Parent** → only their children's records
+
+### Grade Prediction Formula
+```
+Final Score = (Mid-Term × 0.40) + (Attendance × 0.25) + (Study Hours × 0.20) + (Assignments × 0.15)
+Attendance Penalty = -3 points for every 5% below 75%
+```
+
+### Security
+- Supabase keys stored in `.env.local` — never committed to Git
+- Passwords minimum 8 characters with masked input
+- Role-based access enforced at UI and data level
 
 ## 🎓 About
 
-Built as a Minor Project for B.Tech Computer Science (AI/ML), Semester 4.
-
+**Project:** Minor Project — B.Tech Computer Science, Semester 4  
 **Developer:** Neha Devi  
-**Tech Focus:** Frontend Development + Database Integration
+**Institution:** [Your College Name]

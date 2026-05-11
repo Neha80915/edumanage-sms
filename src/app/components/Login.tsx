@@ -9,12 +9,10 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleQuickLogin = async (email: string) => {
-    setLoading(true);
+  const handleQuickLogin = (quickEmail: string) => {
+    setEmail(quickEmail);
+    setPassword('');
     setError('');
-    const success = await login(email, 'password123');
-    if (!success) setError('Quick login failed. Please try manually.');
-    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,7 +141,7 @@ export function Login() {
                     <button
                       key={acc.role}
                       type="button"
-                      onClick={() => { setEmail(acc.email); setPassword(''); }}
+                      onClick={() => handleQuickLogin(acc.email)}
                       className={`flex items-center gap-2 p-2.5 rounded-xl border ${acc.bg} ${acc.border} hover:shadow-sm transition-all text-left`}
                     >
                       <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${acc.color} flex items-center justify-center flex-shrink-0`}>
@@ -157,7 +155,7 @@ export function Login() {
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-400 mt-3 text-center">Demo password: <span className="font-mono font-semibold text-gray-600">password123</span></p>
+              <p className="text-xs text-gray-400 mt-3 text-center">Click a role to fill the email, then enter your password</p>
             </div>
           </div>
         </div>

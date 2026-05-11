@@ -6,9 +6,20 @@ import { BookOpen, Calendar, Trophy, FileText, TrendingUp, User } from 'lucide-r
 export function StudentDashboard() {
   const { currentUser, students, attendance, marks, fees, assignments } = useApp();
 
-  // Get student details
-  const student = students.find(s => s.id === currentUser?.id);
-  if (!student) return <div>Student not found</div>;
+  // Use student record from DB, fall back to currentUser profile
+  const studentRecord = students.find(s => s.id === currentUser?.id);
+  const student = studentRecord ?? {
+    id: currentUser?.id || '',
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
+    class: '—', section: '—', rollNumber: '—',
+    gender: 'Other' as const, dateOfBirth: '—', address: '—',
+    parentId: '', parentName: '—', parentPhone: '—',
+    admissionDate: '—', subjects: [],
+  };
+
+  if (!currentUser) return <div>Please log in.</div>;
 
   // Calculate stats from real Supabase data
   const studentAttendance = attendance.filter(a => a.studentId === student.id);

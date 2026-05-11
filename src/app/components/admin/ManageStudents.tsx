@@ -3,18 +3,20 @@ import { useApp } from '../../context/AppContext';
 import { Plus, Edit, Trash2, Search, X, Download, Eye, BookOpen, Calendar, TrendingUp, Brain } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GradePrediction } from './GradePrediction';
+import { Student } from '../../types';
 
 export function ManageStudents() {
   const { students, addStudent, updateStudent, deleteStudent, marks, attendance } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [filterGender, setFilterGender] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailTab, setDetailTab] = useState<'profile' | 'prediction'>('profile');
   const [showModal, setShowModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<any>(null);
-  const [studentPassword, setStudentPassword] = useState('password123');
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [studentPassword, setStudentPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -42,7 +44,7 @@ export function ManageStudents() {
     return matchesSearch && matchesClass && matchesGender;
   });
 
-  const handleEdit = (student: any) => {
+  const handleEdit = (student: Student) => {
     setEditingStudent(student);
     setFormData({
       name: student.name,
@@ -64,6 +66,7 @@ export function ManageStudents() {
 
   const handleAdd = () => {
     setEditingStudent(null);
+    setStudentPassword('');
     setFormData({
       name: '',
       email: '',
@@ -90,6 +93,7 @@ export function ManageStudents() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (editingStudent) {
       await updateStudent({
@@ -106,6 +110,7 @@ export function ManageStudents() {
       await addStudent(newStudent, studentPassword);
     }
 
+    setIsSubmitting(false);
     setShowModal(false);
   };
 
@@ -365,7 +370,7 @@ export function ManageStudents() {
                   <label className="block text-sm mb-2 text-gray-700">Gender *</label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'Male' | 'Female' | 'Other' })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   >
                     <option value="Male">Male</option>
@@ -456,13 +461,15 @@ export function ManageStudents() {
 
               {!editingStudent && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password *</label>
                   <input
-                    type="text"
+                    type="password"
+                    required
+                    minLength={8}
                     value={studentPassword}
                     onChange={e => setStudentPassword(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                    placeholder="Set login password for student"
+                    placeholder="Min. 8 characters"
                   />
                   <p className="text-xs text-gray-400 mt-1">Student will use this password to login</p>
                 </div>
@@ -470,14 +477,22 @@ export function ManageStudents() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {editingStudent ? 'Update Student' : 'Add Student'}
+                  {isSubmitting && (
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                  )}
+                  {isSubmitting ? 'Saving...' : (editingStudent ? 'Update Student' : 'Add Student')}
                 </button>
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -544,7 +559,7 @@ export function ManageStudents() {
                     onClick={() => setDetailTab('prediction')}
                     className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition ${detailTab === 'prediction' ? 'bg-white text-indigo-700' : 'text-white/70 hover:bg-white/20'}`}
                   >
-                    <Brain className="w-3.5 h-3.5" /> AI Grade Prediction
+                    <Brain className="w-3.5 h-3.5" /> Grade Prediction
                   </button>
                 </div>
               </div>
@@ -595,7 +610,7 @@ export function ManageStudents() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="subject" tick={{ fontSize: 11 }} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                          <Tooltip formatter={(val: any, _: any, props: any) => [`${val}%`, props.payload.fullSubject]} />
+                          <Tooltip formatter={(val: number, _: string, props: { payload: { fullSubject: string } }) => [`${val}%`, props.payload.fullSubject]} />
                           <Bar dataKey="avg" fill="#6366f1" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>

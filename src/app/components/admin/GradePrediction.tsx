@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, TrendingUp, AlertTriangle, CheckCircle, XCircle, Zap, BookOpen, Target } from 'lucide-react';
+import { Student, Mark, Attendance } from '../../types';
+
+interface PredictionFactor {
+  label: string;
+  weight: string;
+  value: number;
+  score: number;
+  color: string;
+}
+
+interface PredictionResult {
+  grade: string;
+  gradeColor: string;
+  gradeDesc: string;
+  finalScore: number;
+  risks: string[];
+  tips: string[];
+  factors: PredictionFactor[];
+  attPenalty: number;
+}
 
 interface GradePredictionProps {
-  student: any;
-  marks: any[];
-  attendance: any[];
+  student: Student;
+  marks: Mark[];
+  attendance: Attendance[];
 }
 
 export function GradePrediction({ student, marks, attendance }: GradePredictionProps) {
@@ -12,7 +32,7 @@ export function GradePrediction({ student, marks, attendance }: GradePredictionP
   const [attendancePct, setAttendancePct] = useState('');
   const [studyHours, setStudyHours] = useState('');
   const [assignmentScore, setAssignmentScore] = useState('');
-  const [prediction, setPrediction] = useState<any>(null);
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Auto-fill from real data
@@ -122,11 +142,11 @@ export function GradePrediction({ student, marks, attendance }: GradePredictionP
           <Brain className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900 text-sm">AI Grade Predictor</h3>
-          <p className="text-xs text-gray-500">Weighted ML model · Auto-filled from student records</p>
+          <h3 className="font-semibold text-gray-900 text-sm">Grade Predictor</h3>
+          <p className="text-xs text-gray-500">Weighted scoring formula · Auto-filled from student records</p>
         </div>
         <div className="ml-auto flex items-center gap-1 text-xs text-violet-600 bg-violet-100 px-2 py-1 rounded-full">
-          <Zap className="w-3 h-3" /> AI Powered
+          <Zap className="w-3 h-3" /> Auto Analysis
         </div>
       </div>
 
@@ -231,7 +251,7 @@ export function GradePrediction({ student, marks, attendance }: GradePredictionP
           <div className="bg-gray-50 rounded-xl p-4">
             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Factor Breakdown</h4>
             <div className="space-y-3">
-              {prediction.factors.map((f: any, i: number) => (
+              {prediction.factors.map((f: PredictionFactor, i: number) => (
                 <div key={i}>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="text-gray-600">{f.label} <span className="text-gray-400">({f.weight})</span></span>

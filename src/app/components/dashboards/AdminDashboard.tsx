@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import { Users, GraduationCap, DollarSign, UserCheck, TrendingUp, ArrowUpRight, BookOpen, Award } from 'lucide-react';
+import { Users, GraduationCap, DollarSign, UserCheck, BookOpen, Award } from 'lucide-react';
 
 export function AdminDashboard() {
   const { students, teachers, attendance, marks, fees } = useApp();
@@ -11,7 +11,7 @@ export function AdminDashboard() {
   const totalRevenue = fees.reduce((sum, f) => sum + f.paidAmount, 0);
   const pendingFees = fees.filter(f => f.status === 'Pending' || f.status === 'Overdue').length;
 
-  const todayDate = '2026-04-05';
+  const todayDate = new Date().toISOString().split('T')[0];
   const todayAttendance = attendance.filter(a => a.date === todayDate);
   const presentToday = todayAttendance.filter(a => a.status === 'Present').length;
   const attendanceRate = todayAttendance.length > 0 ? Math.round((presentToday / todayAttendance.length) * 100) : 67;
@@ -41,14 +41,40 @@ export function AdminDashboard() {
     return { subject: subject.slice(0, 4), fullSubject: subject, avg };
   });
 
+  const paidFees = fees.filter(f => f.status === 'Paid').length;
+  const totalFees = fees.length;
+  const feeCollectionRate = totalFees > 0 ? Math.round((paidFees / totalFees) * 100) : 0;
+
   const statCards = [
-    { label: 'Total Students', value: totalStudents, sub: 'Across all classes', icon: GraduationCap, from: 'from-violet-500', to: 'to-purple-600', shadow: 'shadow-violet-500/25', glow: 'bg-violet-100 text-violet-600' },
-    { label: 'Total Teachers', value: totalTeachers, sub: 'Active faculty', icon: Users, from: 'from-blue-500', to: 'to-cyan-500', shadow: 'shadow-blue-500/25', glow: 'bg-blue-100 text-blue-600' },
-    { label: 'Attendance Rate', value: `${attendanceRate}%`, sub: "Today's attendance", icon: UserCheck, from: 'from-emerald-500', to: 'to-teal-500', shadow: 'shadow-emerald-500/25', glow: 'bg-emerald-100 text-emerald-600' },
-    { label: 'Total Revenue', value: `₹${(totalRevenue / 1000).toFixed(0)}k`, sub: `${pendingFees} pending payments`, icon: DollarSign, from: 'from-orange-500', to: 'to-amber-500', shadow: 'shadow-orange-500/25', glow: 'bg-orange-100 text-orange-600' },
+    {
+      label: 'Total Students', value: totalStudents, sub: 'Across all classes',
+      icon: GraduationCap, from: 'from-violet-500', to: 'to-purple-600',
+      shadow: 'shadow-violet-500/25', glow: 'bg-violet-100 text-violet-600',
+      badge: `${students.filter(s => s.class === '12th').length} in 12th`,
+    },
+    {
+      label: 'Total Teachers', value: totalTeachers, sub: 'Active faculty',
+      icon: Users, from: 'from-blue-500', to: 'to-cyan-500',
+      shadow: 'shadow-blue-500/25', glow: 'bg-blue-100 text-blue-600',
+      badge: `${[...new Set(teachers.flatMap(t => t.subjects))].length} subjects`,
+    },
+    {
+      label: 'Attendance Rate', value: `${attendanceRate}%`, sub: "Today's attendance",
+      icon: UserCheck, from: 'from-emerald-500', to: 'to-teal-500',
+      shadow: 'shadow-emerald-500/25',
+      glow: attendanceRate >= 75 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600',
+      badge: attendanceRate >= 75 ? 'On track' : 'Below 75%',
+    },
+    {
+      label: 'Total Revenue', value: `₹${(totalRevenue / 1000).toFixed(0)}k`, sub: `${pendingFees} pending payments`,
+      icon: DollarSign, from: 'from-orange-500', to: 'to-amber-500',
+      shadow: 'shadow-orange-500/25',
+      glow: feeCollectionRate >= 70 ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600',
+      badge: `${feeCollectionRate}% collected`,
+    },
   ];
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number }[]; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
@@ -86,7 +112,7 @@ export function AdminDashboard() {
                   <Icon className="w-5 h-5 text-white" />
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-lg font-medium flex items-center gap-1 ${card.glow}`}>
-                  <ArrowUpRight className="w-3 h-3" /> +2.4%
+                  {card.badge}
                 </span>
               </div>
               <p className="text-3xl font-bold text-gray-900 mb-1">{card.value}</p>

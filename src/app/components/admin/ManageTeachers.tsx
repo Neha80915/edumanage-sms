@@ -8,7 +8,8 @@ export function ManageTeachers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
-  const [teacherPassword, setTeacherPassword] = useState('password123');
+  const [teacherPassword, setTeacherPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,6 +47,7 @@ export function ManageTeachers() {
 
   const handleAdd = () => {
     setEditingTeacher(null);
+    setTeacherPassword('');
     setFormData({
       name: '',
       email: '',
@@ -67,6 +69,7 @@ export function ManageTeachers() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (editingTeacher) {
       await updateTeacher({
@@ -83,6 +86,7 @@ export function ManageTeachers() {
       await addTeacher(newTeacher, teacherPassword);
     }
 
+    setIsSubmitting(false);
     setShowModal(false);
   };
 
@@ -308,13 +312,15 @@ export function ManageTeachers() {
 
               {!editingTeacher && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login Password *</label>
                   <input
-                    type="text"
+                    type="password"
+                    required
+                    minLength={8}
                     value={teacherPassword}
                     onChange={e => setTeacherPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                    placeholder="Set login password for teacher"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                    placeholder="Min. 8 characters"
                   />
                   <p className="text-xs text-gray-400 mt-1">Teacher will use this password to login</p>
                 </div>
@@ -322,14 +328,22 @@ export function ManageTeachers() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
+                  {isSubmitting && (
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                  )}
+                  {isSubmitting ? 'Saving...' : (editingTeacher ? 'Update Teacher' : 'Add Teacher')}
                 </button>
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { FileText, Download, Search, Printer } from 'lucide-react';
+import { Student } from '../../types';
 
 export function ReportCard() {
   const { students, marks, attendance, fees } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [generating, setGenerating] = useState(false);
 
   const filteredStudents = students.filter(s =>
@@ -13,7 +14,7 @@ export function ReportCard() {
     s.rollNumber.includes(searchTerm)
   );
 
-  const generateReportCard = (student: any) => {
+  const generateReportCard = (student: Student) => {
     setGenerating(true);
 
     const studentMarks = marks.filter(m => m.studentId === student.id);

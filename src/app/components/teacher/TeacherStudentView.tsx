@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Search, Eye, X, TrendingUp, BookOpen, Calendar, Brain } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GradePrediction } from '../admin/GradePrediction';
+import { Student } from '../../types';
 
 export function TeacherStudentView() {
   const { currentUser, students, teachers, marks, attendance } = useApp();
@@ -10,7 +11,7 @@ export function TeacherStudentView() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClass, setFilterClass] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailTab, setDetailTab] = useState<'profile' | 'prediction'>('profile');
 
@@ -85,7 +86,7 @@ export function TeacherStudentView() {
                 onClick={() => setDetailTab('prediction')}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition ${detailTab === 'prediction' ? 'bg-white text-blue-700' : 'text-white/70 hover:bg-white/20'}`}
               >
-                <Brain className="w-3.5 h-3.5" /> AI Grade Prediction
+                <Brain className="w-3.5 h-3.5" /> Grade Prediction
               </button>
             </div>
           </div>
@@ -134,7 +135,7 @@ export function TeacherStudentView() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="subject" tick={{ fontSize: 11 }} />
                         <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                        <Tooltip formatter={(val: any, _: any, props: any) => [`${val}%`, props.payload.fullSubject]} />
+                        <Tooltip formatter={(val: number, _: string, props: { payload: { fullSubject: string } }) => [`${val}%`, props.payload.fullSubject]} />
                         <Bar dataKey="avg" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>

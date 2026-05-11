@@ -7,13 +7,15 @@ export function MarkAttendance() {
 
   // Get teacher details
   const teacher = teachers.find(t => t.id === currentUser?.id);
-  if (!teacher) return <div>Teacher not found</div>;
 
-  const [selectedClass, setSelectedClass] = useState(teacher.classes[0] || '');
-  const [selectedSubject, setSelectedSubject] = useState(teacher.subjects[0] || '');
+  const [selectedClass, setSelectedClass] = useState(teacher?.classes[0] || '');
+  const [selectedSubject, setSelectedSubject] = useState(teacher?.subjects[0] || '');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceData, setAttendanceData] = useState<{ [key: string]: 'Present' | 'Absent' | 'Late' | 'Excused' }>({});
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!teacher) return <div>Teacher not found</div>;
 
   // Get students for selected class
   const classStudents = students.filter(s => {
@@ -37,14 +39,16 @@ export function MarkAttendance() {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (Object.keys(attendanceData).length === 0) {
       setMessage('Please mark attendance for at least one student');
       return;
     }
 
+    setIsSubmitting(true);
+
     // Add attendance records
-    Object.entries(attendanceData).forEach(([studentId, status]) => {
+    for (const [studentId, status] of Object.entries(attendanceData)) {
       const newAttendance = {
         id: `A${Date.now()}-${studentId}`,
         studentId,
@@ -55,9 +59,10 @@ export function MarkAttendance() {
         class: selectedClass.split(' ')[0],
         section: selectedClass.split(' ')[1],
       };
-      addAttendance(newAttendance);
-    });
+      await addAttendance(newAttendance);
+    }
 
+    setIsSubmitting(false);
     setMessage(`✓ Attendance marked successfully for ${Object.keys(attendanceData).length} students`);
     setAttendanceData({});
     setTimeout(() => setMessage(''), 3000);
@@ -216,10 +221,18 @@ export function MarkAttendance() {
           <div className="p-6 border-t border-gray-200 flex justify-end">
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Save className="w-5 h-5" />
-              Save Attendance
+              {isSubmitting ? (
+                <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                </svg>
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isSubmitting ? 'Saving...' : 'Save Attendance'}
             </button>
           </div>
         )}
