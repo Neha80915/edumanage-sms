@@ -136,4 +136,4 @@ Attendance Penalty = -3 points for every 5% below 75%
 
 **Project:** Minor Project — B.Tech Computer Science, Semester 4  
 **Developer:** Neha Devi  
-**Institution:** [Your College Name]
+**Institution:** [Rayat Bhara University Mohali]
