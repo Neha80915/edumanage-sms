@@ -3,9 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { FileText, Save } from 'lucide-react';
 
 export function EnterMarks() {
-  const { currentUser, students, teachers, addMark } = useApp();
+  const { currentUser, students, teachers, marks, addMark } = useApp();
 
-  // Get teacher details
   const teacher = teachers.find(t => t.id === currentUser?.id);
 
   const [selectedClass, setSelectedClass] = useState(teacher?.classes[0] || '');
@@ -18,21 +17,23 @@ export function EnterMarks() {
 
   if (!teacher) return <div>Teacher not found</div>;
 
-  // Get students for selected class
   const classStudents = students.filter(s => {
     const studentClass = `${s.class} ${s.section}`;
     return studentClass === selectedClass && s.subjects.includes(selectedSubject);
   });
 
+  // Check which students already have marks for selected subject + exam type
+  const studentsWithExistingMarks = new Set(
+    marks
+      .filter(m => m.subject === selectedSubject && m.examType === selectedExamType)
+      .map(m => m.studentId)
+  );
+
   const handleMarksChange = (studentId: string, value: string) => {
-    // Allow only numbers
     if (value === '' || /^\d+$/.test(value)) {
       const numValue = parseInt(value);
       if (value === '' || (numValue >= 0 && numValue <= parseInt(maxMarks))) {
-        setMarksData(prev => ({
-          ...prev,
-          [studentId]: value,
-        }));
+        setMarksData(prev => ({ ...prev, [studentId]: value }));
       }
     }
   };
@@ -59,9 +60,22 @@ export function EnterMarks() {
       return;
     }
 
+    // Check for duplicates before submitting
+    const duplicates = Object.keys(marksData).filter(
+      studentId => marksData[studentId] !== '' && studentsWithExistingMarks.has(studentId)
+    );
+
+    if (duplicates.length > 0) {
+      const duplicateNames = duplicates
+        .map(id => classStudents.find(s => s.id === id)?.name)
+        .filter(Boolean)
+        .join(', ');
+      setMessage(`⚠ ${selectedSubject} ${selectedExamType} marks already exist for: ${duplicateNames}. Please delete existing records first.`);
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Add mark records
     for (const [studentId, marks] of Object.entries(marksData)) {
       if (marks !== '') {
         const obtainedMarks = parseInt(marks);
@@ -103,7 +117,7 @@ export function EnterMarks() {
             <label className="block text-sm mb-2 text-gray-700">Class</label>
             <select
               value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              onChange={(e) => { setSelectedClass(e.target.value); setMarksData({}); }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             >
               {teacher.classes.map(cls => (
@@ -116,7 +130,7 @@ export function EnterMarks() {
             <label className="block text-sm mb-2 text-gray-700">Subject</label>
             <select
               value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
+              onChange={(e) => { setSelectedSubject(e.target.value); setMarksData({}); }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             >
               {teacher.subjects.map(sub => (
@@ -129,7 +143,7 @@ export function EnterMarks() {
             <label className="block text-sm mb-2 text-gray-700">Exam Type</label>
             <select
               value={selectedExamType}
-              onChange={(e) => setSelectedExamType(e.target.value as 'Mid-Term' | 'Final' | 'Unit Test' | 'Assignment' | 'Quiz')}
+              onChange={(e) => { setSelectedExamType(e.target.value as 'Mid-Term' | 'Final' | 'Unit Test' | 'Assignment' | 'Quiz'); setMarksData({}); }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="Mid-Term">Mid-Term</option>
@@ -167,6 +181,11 @@ export function EnterMarks() {
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg text-gray-800">Students ({classStudents.length})</h3>
           <p className="text-sm text-gray-600 mt-1">Enter marks out of {maxMarks}</p>
+          {studentsWithExistingMarks.size > 0 && (
+            <p className="text-sm text-amber-600 mt-1">
+              ⚠ Some students already have {selectedSubject} {selectedExamType} marks — shown with a warning below.
+            </p>
+          )}
         </div>
 
         <div className="overflow-x-auto">
@@ -182,6 +201,7 @@ export function EnterMarks() {
                   <th className="px-6 py-3 text-left text-xs text-gray-600">Student Name</th>
                   <th className="px-6 py-3 text-left text-xs text-gray-600">Marks Obtained</th>
                   <th className="px-6 py-3 text-left text-xs text-gray-600">Grade (Preview)</th>
+                  <th className="px-6 py-3 text-left text-xs text-gray-600">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -189,9 +209,10 @@ export function EnterMarks() {
                   const obtainedMarks = marksData[student.id] ? parseInt(marksData[student.id]) : 0;
                   const maximum = parseInt(maxMarks) || 100;
                   const grade = marksData[student.id] ? calculateGrade(obtainedMarks, maximum) : '-';
+                  const alreadyEntered = studentsWithExistingMarks.has(student.id);
 
                   return (
-                    <tr key={student.id} className="hover:bg-gray-50">
+                    <tr key={student.id} className={`hover:bg-gray-50 ${alreadyEntered ? 'bg-amber-50' : ''}`}>
                       <td className="px-6 py-4 text-sm text-gray-800">{student.rollNumber}</td>
                       <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
                       <td className="px-6 py-4">
@@ -200,7 +221,10 @@ export function EnterMarks() {
                           value={marksData[student.id] || ''}
                           onChange={(e) => handleMarksChange(student.id, e.target.value)}
                           placeholder="0"
-                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                          disabled={alreadyEntered}
+                          className={`w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
+                            alreadyEntered ? 'bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400' : 'border-gray-300'
+                          }`}
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -213,6 +237,13 @@ export function EnterMarks() {
                         }`}>
                           {grade}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs">
+                        {alreadyEntered ? (
+                          <span className="text-amber-600 font-medium">⚠ Already entered</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                     </tr>
                   );
