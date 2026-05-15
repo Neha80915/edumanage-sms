@@ -33,7 +33,7 @@ export function ManageStudents() {
     subjects: [] as string[],
   });
 
-  const allSubjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Computer Science', 'Physical Education'];
+  const allSubjects = ['Mathematics', 'Physics', 'Science','Chemistry', 'Biology', 'English', 'Hindi', 'Sanskrit','Health Education','Computer Science', 'Physical Education','Social Studies', 'History', 'Geography', 'Economics', 'Political Science ', 'Psychology', 'Sociology', 'Business Studies', 'Accountancy', 'Fine Arts', 'Music', 'Dance', 'Drama', 'Environmental Science'];
 
   const filteredStudents = students.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,6 +194,8 @@ export function ManageStudents() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-700"
           >
             <option value="">All Classes</option>
+            <option value="6th">6th</option>
+            <option value="7th">7th</option>
             <option value="8th">8th</option>
             <option value="9th">9th</option>
             <option value="10th">10th</option>
@@ -345,6 +347,8 @@ export function ManageStudents() {
                     onChange={(e) => setFormData({ ...formData, class: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   >
+                    <option value="6th">6th</option>  
+                    <option value="7th">7th</option>
                     <option value="8th">8th</option>
                     <option value="9th">9th</option>
                     <option value="10th">10th</option>
