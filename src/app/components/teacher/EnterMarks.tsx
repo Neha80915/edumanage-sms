@@ -25,7 +25,12 @@ export function EnterMarks() {
   // Check which students already have marks for selected subject + exam type
   const studentsWithExistingMarks = new Set(
     marks
-      .filter(m => m.subject === selectedSubject && m.examType === selectedExamType)
+      .filter(m =>
+        m.subject === selectedSubject &&
+        m.examType === selectedExamType &&
+        m.class === selectedClass.split(' ')[0] &&
+        m.section === selectedClass.split(' ')[1]
+      )
       .map(m => m.studentId)
   );
 
