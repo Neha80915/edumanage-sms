@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Save, Lock } from 'lucide-react';
+import { Save, Lock, Calendar } from 'lucide-react';
 
 export function MarkAttendance() {
   const { currentUser, students, teachers, attendance, addAttendance } = useApp();
@@ -9,20 +9,24 @@ export function MarkAttendance() {
 
   const [selectedClass, setSelectedClass] = useState(teacher?.classes[0] || '');
   const [selectedSubject, setSelectedSubject] = useState(teacher?.subjects[0] || '');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendanceData, setAttendanceData] = useState<{ [key: string]: 'Present' | 'Absent' | 'Late' | 'Excused' }>({});
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Always locked to today — teachers cannot mark previous or future dates
+  const todayDate = new Date().toISOString().split('T')[0];
+  const todayDisplay = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
 
   if (!teacher) return <div>Teacher not found</div>;
 
   const classStudents = students.filter(s => `${s.class} ${s.section}` === selectedClass);
 
-  // Check if attendance already marked for this class + subject + date
   const existingAttMap = new Map(
     attendance
       .filter(a =>
-        a.date === selectedDate &&
+        a.date === todayDate &&
         a.subject === selectedSubject &&
         `${a.class} ${a.section}` === selectedClass
       )
@@ -56,7 +60,7 @@ export function MarkAttendance() {
       const newAttendance = {
         id: `A${Date.now()}-${studentId}`,
         studentId,
-        date: selectedDate,
+        date: todayDate,
         status,
         markedBy: teacher.id,
         subject: selectedSubject,
@@ -108,11 +112,15 @@ export function MarkAttendance() {
               {teacher.subjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
             </select>
           </div>
+          {/* Date locked to today — read only */}
           <div>
-            <label className="block text-sm mb-2 text-gray-700">Date</label>
-            <input type="date" value={selectedDate}
-              onChange={(e) => { setSelectedDate(e.target.value); setAttendanceData({}); setMessage(''); }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+            <label className="block text-sm mb-2 text-gray-700">Date (Today Only)</label>
+            <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="text-sm font-medium truncate">{todayDisplay}</span>
+              <Lock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-auto" />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Attendance can only be marked for today</p>
           </div>
         </div>
       </div>
@@ -123,7 +131,7 @@ export function MarkAttendance() {
           <Lock className="w-5 h-5 flex-shrink-0" />
           <div>
             <p className="font-medium text-sm">Attendance already marked</p>
-            <p className="text-xs mt-0.5">Attendance for <strong>{selectedSubject}</strong> on <strong>{selectedDate}</strong> has been recorded and is locked.</p>
+            <p className="text-xs mt-0.5">Attendance for <strong>{selectedSubject}</strong> today has been recorded and is locked.</p>
           </div>
         </div>
       )}
@@ -174,7 +182,6 @@ export function MarkAttendance() {
 
                 <div className="flex items-center gap-2">
                   {isAlreadyMarked ? (
-                    // Show locked status badge
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${statusColor(existing?.status || '')}`}>
                         {existing?.status || '—'}
@@ -182,7 +189,6 @@ export function MarkAttendance() {
                       <Lock className="w-4 h-4 text-gray-400" />
                     </div>
                   ) : (
-                    // Show interactive buttons
                     (['Present', 'Absent', 'Late', 'Excused'] as const).map(status => (
                       <button
                         key={status}
