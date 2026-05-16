@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, FileText, Calendar, TrendingUp } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, FileText } from 'lucide-react';
 
 export function TeacherDashboard() {
   const { currentUser, students, teachers, attendance, marks } = useApp();
@@ -17,10 +17,12 @@ export function TeacherDashboard() {
 
   const totalClasses = teacher?.classes.length ?? 0;
   const totalStudents = teacherStudents.length;
-  // Replace with ✅
-  const todayAttendance = attendance.filter(a =>
+
+  // Count unique students marked today (not total records)
+  const todayAttendanceRecords = attendance.filter(a =>
     a.markedBy === teacher?.id && a.date === todayDate
-  ).length;
+  );
+  const todayAttendance = new Set(todayAttendanceRecords.map(a => a.studentId)).size;
 
   const totalMarksEntered = marks.filter(m => m.teacherId === teacher?.id).length;
 
@@ -77,6 +79,7 @@ export function TeacherDashboard() {
             <div>
               <p className="text-sm text-gray-600">Today's Attendance</p>
               <p className="text-3xl mt-1 text-gray-800">{todayAttendance}</p>
+              <p className="text-xs text-gray-400 mt-1">Unique students marked</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-6 h-6 text-purple-600" />
@@ -109,7 +112,6 @@ export function TeacherDashboard() {
         >
           Overview
         </button>
-        
         <button
           onClick={() => setActiveTab('performance')}
           className={`px-4 py-2 border-b-2 transition ${
@@ -202,7 +204,7 @@ export function TeacherDashboard() {
         </div>
       )}
 
-{activeTab === 'performance' && (
+      {activeTab === 'performance' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Marks */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
