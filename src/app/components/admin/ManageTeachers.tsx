@@ -20,9 +20,9 @@ export function ManageTeachers() {
     subjects: [] as string[],
     classes: [] as string[],
   });
+  const allSubjects = ['Mathematics', 'Science', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Sanskrit', 'Social Studies', 'History', 'Geography', 'Computer Science', 'Physical Education', 'Health Education', 'Economics', 'Accountancy', 'Business Studies'];
+  const allClasses = ['6th A', '6th B', '7th A', '7th B', '8th A', '8th B', '9th A', '9th B', '10th A', '10th B', '11th A', '11th B', '12th A', '12th B'];
 
-  const allSubjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Computer Science', 'Physical Education'];
-  const allClasses = ['8th A', '8th B', '9th A', '9th B', '10th A', '10th B', '11th A', '11th B', '12th A', '12th B'];
 
   const filteredTeachers = teachers.filter(t =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
