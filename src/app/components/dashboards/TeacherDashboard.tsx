@@ -19,8 +19,10 @@ export function TeacherDashboard() {
   const totalStudents = teacherStudents.length;
   // Replace with ✅
   const todayAttendance = attendance.filter(a =>
-  a.markedBy === teacher?.id && a.date === todayDate
-).length;
+    a.markedBy === teacher?.id && a.date === todayDate
+  ).length;
+
+  const totalMarksEntered = marks.filter(m => m.teacherId === teacher?.id).length;
 
   const attendanceStats = [
     { name: 'Present', value: attendance.filter(a => a.markedBy === teacher?.id && a.status === 'Present').length, color: '#10b981' },
