@@ -190,7 +190,7 @@ export function FeeManagement() {
               <select value={filterClass} onChange={e => setFilterClass(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">All Classes</option>
-                {['8th','9th','10th','11th','12th'].map(c => <option key={c} value={c}>{c}</option>)}
+                {['6th','7th','8th','9th','10th','11th','12th'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <p className="text-xs text-gray-400 mt-2">{filteredFees.length} records found</p>
